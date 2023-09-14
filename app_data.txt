@@ -1,0 +1,420 @@
+create database shop;
+use shop;
+drop database shop
+---------------------------------------------------------------------
+
+ALTER DATABASE SCOPED CONFIGURATION SET IDENTITY_CACHE = OFF
+GO
+create table loginuser (
+login_id bigint identity(1, 1) primary key,
+username nvarchar(50) COLLATE Arabic_CI_AS,
+passphrase nvarchar(50) COLLATE Arabic_CI_AS,
+createdate datetime default getdate(),
+permission nvarchar(50) default('user')
+);
+drop table loginuser
+select * from item
+insert into loginuser values ('g' , N'g',GETDATE() ,N'بەرێوبەر' )
+delete loginuser
+---------------------------------------------------------------------
+delete item
+delete solditem
+delete bought_item
+delete expenses
+delete transaction_money
+
+create table item (
+item_id bigint identity(1, 1) primary key,
+item_name nvarchar(100),
+quantity DECIMAL(20, 2),
+type_quantity nvarchar(100),
+type_second_quantity nvarchar(100) null,
+foreach_type_quantity bigint null,
+date_come datetime default getdate(),
+buy_price DECIMAL(20, 2),
+sell_price DECIMAL(20, 2),
+)
+
+
+
+
+INSERT INTO item (item_name, quantity, type_quantity, type_second_quantity, foreach_type_quantity, buy_price, sell_price)
+VALUES ('Item 7', 50000,'L' , 'ton', 1000, 1000, 25.00);
+
+
+create table items(
+items_id bigint identity(1, 1) primary key,
+items_name nvarchar(100),
+type_quantity nvarchar(100),
+type_second_quantity nvarchar(100) null,
+foreach_type_quantity bigint null,
+buy_price DECIMAL(20, 2),
+sell_price DECIMAL(20, 2),
+)
+
+
+INSERT INTO items (items_name, type_quantity, type_second_quantity, foreach_type_quantity, buy_price, sell_price)
+VALUES
+    ('Item1', 'Type1', 'Type2', 10, 10.00, 15.00),
+    ('Item2', 'Type3', 'Type4', 5, 20.00, 25.00);
+drop table bought_item
+item_name,quantity,type_quantity,type_second_quantity,foreach_type_quantity,buy_price,sell_price
+
+
+create table bought_item(
+bought_item_id bigint identity(1, 1) primary key,
+item_idd bigint,
+quantity DECIMAL(20, 2),
+date_come datetime default getdate(),
+buy_price DECIMAL(20, 2),
+sell_price DECIMAL(20, 2),
+type_buy bigint, 
+constraint fk_item2 foreign key(item_idd) references item(item_id)
+)
+
+
+alter view bought_item_view as
+SELECT
+    bi.bought_item_id,
+    bi.item_idd,
+	i.item_name as items_name,
+    bi.quantity,
+    bi.date_come,
+    bi.buy_price,
+    bi.sell_price,
+    CASE
+        WHEN bi.type_buy = 1 THEN N'کاش'
+        ELSE N'قەرز'
+    END AS type_buy
+FROM bought_item bi
+INNER JOIN item i ON bi.item_idd = i.item_id;
+
+
+drop table bought_item
+create table orders(
+id_item bigint,
+item_name nvarchar(100),
+quantity DECIMAL(20, 2),
+type_quantity nvarchar(50),
+sellprice bigint,
+)
+
+select * from orders
+---------------------------------------------------------------------
+
+
+
+create table solditem (
+solditem_id bigint identity(1, 1) primary key,
+itemid bigint,
+sold_date datetime default getdate(),
+person_sold nvarchar(100),
+quantity decimal(20, 2),
+type_quantity nvarchar(50),
+drivers_id bigint,
+soldprice bigint,
+customer_id bigint,
+loan int default 0,
+foreachitem bigint,
+constraint fk_customer foreign key(customer_id) references customer(customer_id),
+constraint fk_drivers foreign key(drivers_id) references drivers(drivers_id),
+constraint fk_item foreign key(itemid) references item(item_id)
+);
+
+create table item (
+item_id bigint identity(1, 1) primary key,
+item_name nvarchar(100),
+quantity DECIMAL(20, 2),
+type_quantity nvarchar(100),
+type_second_quantity nvarchar(100) null,
+foreach_type_quantity bigint null,
+date_come datetime default getdate(),
+buy_price DECIMAL(20, 2),
+sell_price DECIMAL(20, 2),
+)
+
+
+SELECT SUM((i.sell_price - i.buy_price)* s.quantity) AS total_profit FROM solditem AS s INNER JOIN item AS i ON i.item_id = s.itemid
+select * from solditem
+delete solditem
+
+select top 1 * from solditem order by solditem_id desc
+
+create table solditem (
+solditem_id bigint identity(1, 1) primary key,
+itemid bigint,
+sold_date datetime default getdate(),
+person_sold nvarchar(100),
+quantity decimal(20, 2),
+type_quantity nvarchar(50),
+drivers_id bigint,
+soldprice bigint,
+customer_id bigint,
+loan int default 0,
+foreachitem bigint,
+constraint fk_customer foreign key(customer_id) references customer(customer_id),
+constraint fk_drivers foreign key(drivers_id) references drivers(drivers_id),
+constraint fk_item foreign key(itemid) references item(item_id)
+);
+
+ 
+ select top 100 * from solditem_view where namee like 'mh%'
+ select * from solditem_view order by solditem_id desc "
+
+
+----------------------
+create view solditem_view as
+select s.solditem_id, s.itemid as tt, i.item_name as namee  ,c.c_name AS customer_name,d.d_name AS driver_name,sold_date,person_sold,s.quantity,s.type_quantity,s.soldprice,
+	CASE 
+        WHEN loan = 0 THEN N'فرۆشتن'
+        WHEN loan = 1 THEN N'قەرز'
+        ELSE NULL 
+    END AS loan_status
+FROM
+    solditem s
+JOIN
+    customer c ON s.customer_id = c.customer_id
+JOIN
+    drivers d ON s.drivers_id = d.drivers_id
+JOIN
+    item i ON s.itemid = i.item_id;
+c_id,type_history,amount_history,loan_before,loan_after
+------------------------------
+
+
+
+item_id,quantity,price_item
+
+create table customer_history (
+customer_history_id bigint identity(1, 1) primary key,
+c_id bigint,
+item_id bigint null,
+quantity bigint null,
+price_item bigint null,
+type_history bigint,
+amount_history DECIMAL(20, 2),
+loan_before DECIMAL(20, 2),
+loan_after DECIMAL(20, 2),
+date_history datetime default getdate(),
+transction_type bigint,
+constraint fk_customer_history foreign key(c_id) references customer(customer_id),
+constraint fk_item_history foreign key(item_id) references item(item_id)
+)
+select * from customer_history
+drop table customer_history
+
+
+
+ALTER VIEW customerreport AS
+SELECT
+    c.c_name AS 'ناوی موشتەری',
+    CASE
+        WHEN ch.type_history = 1 THEN N'کرینی کالا'
+        WHEN ch.type_history = 2 THEN N'گەرانەوەی کالا'
+        WHEN ch.type_history = 3 THEN N'کردنی مامەلە'
+        WHEN ch.type_history = 4 THEN N'سرینەوەی مامەلە'
+        WHEN ch.type_history = 5 THEN N'وەرگرتنی پارە'
+        WHEN ch.type_history = 6 THEN N'پێدانی پارە'
+        WHEN ch.type_history = 7 THEN N'سرینەوەی وەرگرتنی پارە'
+        WHEN ch.type_history = 8 THEN N'سرینەوای پێدانی پارە'
+        ELSE N'' -- Handle any other values not in the range 1-8
+    END AS 'جۆری مامەلە',
+    ISNULL(i.item_name, N'') AS 'کالا',
+    ISNULL(ch.quantity, N'') AS 'عدد',
+    ISNULL(ch.price_item, N'') AS 'نرخی کالا',
+    ch.amount_history AS 'نرخی گشتی',
+    ch.loan_after AS 'کۆتا قەرز',
+    ch.date_history AS 'رۆژی مامەلە'
+FROM customer_history ch
+LEFT JOIN customer c ON ch.c_id = c.customer_id
+LEFT JOIN item i ON ch.item_id = i.item_id;
+
+
+
+
+
+
+
+SELECT * FROM customerreport
+WHERE [ناوی موشتەری] LIKE '%';
+SELECT * FROM customerreport WHERE c_name LIKE '%';
+SELECT *
+FROM customerreport
+WHERE CAST([رۆژی دەسکاری] AS DATE) = '2023-09-11';
+
+
+
+
+
+select * from customer where c_name like 'zzz%' 
+delete customer_history
+drop table customer_history
+select * from customer_history
+---------------------------------------------------------------------
+create table customer (
+customer_id bigint identity(1, 1) primary key,
+c_name nvarchar(100),
+type_customer nvarchar(100),
+contact_number bigint,
+loan_amount DECIMAL(20, 2) default 0,
+);
+delete drivers
+
+SELECT * FROM customer WHERE c_name LIKE '%';
+drop table employee
+---------------------------------------------------------------------
+
+create table employee (
+employee_id bigint identity(1, 1) primary key,
+firstname nvarchar(100),
+lastname nvarchar(100),
+contactnumber bigint,
+salary bigint,
+hiring_date date default getdate()
+);
+drop table employee customer where loan_amount >= 2
+select * from customer
+---------------------------------------------------------------------
+select * from transaction_money_view
+
+
+create view transaction_money_view as
+SELECT
+    tm.transaction_id,
+    sender.c_name AS sender_name,
+    recipient.c_name AS recipient_name,
+    tm.transaction_date,
+    tm.amount,
+    tm.person_name
+FROM
+    transaction_money tm
+JOIN
+    customer sender ON tm.sender_id = sender.customer_id
+JOIN
+    customer recipient ON tm.recipient_id = recipient.customer_id;
+
+delete transaction_money
+create table transaction_money (
+transaction_id bigint identity(1, 1) primary key,
+sender_id bigint,
+recipient_id bigint,
+transaction_date datetime default getdate(),
+amount DECIMAL(20, 2),
+person_name bigint ,
+constraint fk_customer1 foreign key(sender_id) references customer(customer_id),
+constraint fk_customer2 foreign key(recipient_id) references customer(customer_id)
+);
+drop table transaction_money
+---------------------------------------------------------------------
+
+delete drivers
+
+create table drivers (
+drivers_id bigint identity(1, 1) primary key,
+d_name nvarchar(100),
+contact_number bigint,
+hiring_date date default getdate()
+);
+drop table drivers
+
+expenses_name,money_amount,employee_name
+---------------------------------------------------------------------
+ delete expenses
+create table expenses (
+expenses_id bigint identity(1, 1) primary key,
+expenses_name_id bigint,
+money_amount bigint,
+expenses_date  datetime default getdate(),
+employee_name nvarchar(100),
+constraint fk_expenses foreign key(expenses_name_id) references expenses_category(expenses_category_id)
+);
+
+delete expenses_category
+delete expenses
+drop table expenses
+---------------------------------------------------------------------
+
+alter view expenses_view as
+SELECT
+    e.expenses_id,
+    ec.expenses_name AS expenses_name,
+    e.money_amount,
+    e.expenses_date,
+    e.employee_name
+FROM
+    expenses AS e
+INNER JOIN
+    expenses_category AS ec
+ON
+    e.expenses_name_id = ec.expenses_category_id;
+
+	 delete income_balance_changed
+
+create table income_balance_changed(
+income_idd bigint identity(1, 1) primary key,
+amount_income bigint,
+amount_changed DECIMAL(20, 2),
+after_balance DECIMAL(20, 2),
+date_balance datetime default getdate(),
+employee_changed nvarchar(100),
+)
+select * from income_balance_changed
+SELECT SUM(amount_changed) AS total_fullprice FROM income_balance_changed
+
+drop table income_balance_changed
+----------------------------------------------------------------------
+
+delete expenses_category
+
+
+
+
+create table expenses_category(
+expenses_category_id bigint identity(1, 1) primary key,
+expenses_name nvarchar(100),
+)
+select * from expenses_category
+---------------------------------------------------------------------
+
+
+create table income (
+income_id bigint identity(1, 1) primary key,
+income_balance DECIMAL(20, 2),
+date_balance date default getdate()
+);
+
+
+select * from money_changed_view2 order by money_changed_id desc
+select
+alter view money_changed_view2 as
+SELECT
+    mc.money_changed_id,
+    c.c_name AS customer_name,
+    CASE
+        WHEN mc.typemoney = 0 THEN N'پی دانی پارە'
+        ELSE N'وەرگرتنی پارە'
+    END AS money_action,
+    mc.money_amount,
+    d.d_name AS driver_name,
+    mc.date_changed,
+	mc.note_money
+FROM
+    money_changed mc
+INNER JOIN
+    customer c ON mc.customer_idd = c.customer_id
+INNER JOIN
+    drivers d ON mc.drivers_idd = d.drivers_id;
+
+
+	--------------------------------------------------------------
+CREATE TABLE money_changed (
+    money_changed_id BIGINT IDENTITY(1, 1) PRIMARY KEY,
+    customer_idd bigint,
+    typemoney BIGINT,
+    money_amount BIGINT,
+	drivers_idd bigint,
+	date_changed datetime default getdate(),
+	note_money nvarchar(200),
+    constraint fk_customer4 foreign key(customer_idd) references customer(customer_id),
+    constraint fk_drivers6 foreign key(drivers_idd) references drivers(drivers_id)
+);
